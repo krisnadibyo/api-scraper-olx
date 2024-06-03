@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/option"
@@ -77,12 +76,14 @@ func fetchItems(keyword string, page int) (*responsePayload, error) {
 }
 
 func fetchData() []item {
-	data, err := fetchItems("brio%202013", 0)
+	keyword := "pajero dakar 2013"
+	keyword = strings.Replace(keyword, " ", "%20", -1)
+	data, err := fetchItems(keyword, 0)
 	if err != nil {
 		fmt.Println("Error", err.Error())
 	}
 
-	data2, err := fetchItems("brio%202013", 1)
+	data2, err := fetchItems(keyword, 1)
 	if err != nil {
 		fmt.Println("Error", err.Error())
 	}
@@ -135,16 +136,23 @@ func setupGsheet() (*sheets.Service, error) {
 	return srv, nil
 }
 
-func AppendRow(srv *sheets.Service, spreadsheetId string, title string, price string) {
+func AppendRowData(data []item) *sheets.ValueRange {
+	var vr sheets.ValueRange
+	var v [][]interface{}
 
-	values := &sheets.ValueRange{
-		Values: [][]interface{}{{
-			title,
-			price,
-		}},
+	for _, each := range data {
+		price := each.Price.Value.Display
+		price = price[3:]
+		price = strings.Replace(price, ".", "", -1)
+		v = append(v, []interface{}{each.Title, price})
 	}
 
-	_, err := srv.Spreadsheets.Values.Append(spreadsheetId, "Sheet1!A:F", values).ValueInputOption("USER_ENTERED").Do()
+	vr.Values = v
+	return &vr
+}
+
+func AppendRowToSheet(srv *sheets.Service, spreadsheetId string, rowData *sheets.ValueRange) {
+	_, err := srv.Spreadsheets.Values.Append(spreadsheetId, "Sheet1!A:F", rowData).ValueInputOption("USER_ENTERED").Do()
 
 	if err != nil {
 		log.Fatalf("Unable to insert data to sheet: %v", err)
@@ -153,16 +161,8 @@ func AppendRow(srv *sheets.Service, spreadsheetId string, title string, price st
 
 func main() {
 	spreadsheetId := "13QBSQflOCao6HYJucZ02YnB8Uq5Q9l4cVEN0ab1VOXw"
-
 	srv, _ := setupGsheet()
 	cars := fetchData()
-	for _, each := range cars {
-		title := each.Title
-		price := each.Price.Value.Display
-		price = price[3:]
-		price = strings.Replace(price, ".", "", -1)
-		AppendRow(srv, spreadsheetId, title, price)
-		time.Sleep(100)
-	}
+	AppendRowToSheet(srv, spreadsheetId, AppendRowData(cars))
 
 }
