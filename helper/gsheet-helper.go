@@ -2,6 +2,7 @@ package helper
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	//	"fmt"
@@ -60,11 +61,58 @@ func AppendRowData(data []Item) *sheets.ValueRange {
 	return &vr
 }
 
+func AppendRowFormula(data []Item) *sheets.ValueRange {
+	var vr sheets.ValueRange
+	var v [][]interface{}
+
+	lastRow := len(data)
+	v = append(v, []interface{}{
+		"Average",
+		"=average(B1:B" + strconv.Itoa(lastRow) + ")",
+	})
+
+	v = append(v, []interface{}{
+		"p95",
+		"=percentile(B1:B" + strconv.Itoa(lastRow) + ",0.95)",
+		"harga Dealer di iklan",
+	})
+	v = append(v, []interface{}{
+		"p50 / Median",
+		"=median(B1:B" + strconv.Itoa(lastRow) + ")",
+		"Harga prediksi laku dari dealer",
+	})
+	v = append(v, []interface{}{
+		"p05",
+		"=percentile(B1:B" + strconv.Itoa(lastRow) + ",0.05)",
+		"Harga Deal Penjual langsung -- Lowest Price ",
+	})
+	v = append(v, []interface{}{
+		"Harga ambil cuan 5%",
+		"=0.95*B" + strconv.Itoa(lastRow+4),
+	})
+	v = append(v, []interface{}{
+		"Harga ambil cuan 10%",
+		"=0.9*B" + strconv.Itoa(lastRow+4),
+	})
+
+	vr.Values = v
+	return &vr
+
+}
+
 func AppendRowToSheet(srv *sheets.Service, spreadsheetId string, sheetName string, rowData *sheets.ValueRange) {
 	_, err := srv.Spreadsheets.Values.Append(spreadsheetId, sheetName+"!A:F", rowData).ValueInputOption("USER_ENTERED").Do()
 
 	if err != nil {
 		log.Fatalf("Unable to insert data to sheet: %v", err)
+	}
+}
+
+func ClearSheet(srv *sheets.Service, spreadsheetId string, sheetName string) {
+	rb := &sheets.ClearValuesRequest{}
+	_, err := srv.Spreadsheets.Values.Clear(spreadsheetId, sheetName+"!A:F", rb).Do()
+	if err != nil {
+		log.Fatalf("Unable to clear sheet: %v", err)
 	}
 }
 
