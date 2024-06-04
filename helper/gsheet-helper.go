@@ -2,12 +2,10 @@ package helper
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 
 	//	"fmt"
 	"log"
-	"os"
 
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/option"
@@ -16,25 +14,8 @@ import (
 
 type Token struct {
 	PrivateKey   string `json:"private_key"`
-	PrivateKeyID string `json:"private_key_id"`
+	PrivateKeyID string `json:"spreadsheetId"`
 	Email        string `json:"client_email"`
-}
-
-func ReadTokenFile() Token {
-	jsonFile, err := os.Open("service-account.json")
-	if err != nil {
-		log.Fatalf("Unable to read token file: %v", err)
-	}
-
-	defer jsonFile.Close()
-
-	token := Token{}
-	jsonParser := json.NewDecoder(jsonFile)
-	if err = jsonParser.Decode(&token); err != nil {
-		log.Fatalf("Unable to parse token file: %v", err)
-	}
-
-	return token
 }
 
 func SetupGsheet() (*sheets.Service, error) {
@@ -79,8 +60,8 @@ func AppendRowData(data []Item) *sheets.ValueRange {
 	return &vr
 }
 
-func AppendRowToSheet(srv *sheets.Service, spreadsheetId string, rowData *sheets.ValueRange) {
-	_, err := srv.Spreadsheets.Values.Append(spreadsheetId, "Sheet1!A:F", rowData).ValueInputOption("USER_ENTERED").Do()
+func AppendRowToSheet(srv *sheets.Service, spreadsheetId string, sheetName string, rowData *sheets.ValueRange) {
+	_, err := srv.Spreadsheets.Values.Append(spreadsheetId, sheetName+"!A:F", rowData).ValueInputOption("USER_ENTERED").Do()
 
 	if err != nil {
 		log.Fatalf("Unable to insert data to sheet: %v", err)

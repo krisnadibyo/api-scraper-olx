@@ -5,9 +5,10 @@ import (
 )
 
 func main() {
-	spreadsheetId := "13QBSQflOCao6HYJucZ02YnB8Uq5Q9l4cVEN0ab1VOXw"
+	config := _helper.ReadConfigFile()
+
 	srv, _ := _helper.SetupGsheet()
-	cars := _helper.FetchData()
-	_helper.AppendRowToSheet(srv, spreadsheetId, _helper.AppendRowData(cars))
+	cars := _helper.FetchDatas(config.Keywords)
+	_helper.AppendRowToSheet(srv, config.SpreadsheetID, config.SheetName, _helper.AppendRowData(cars))
 
 }

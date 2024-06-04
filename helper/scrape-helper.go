@@ -62,8 +62,7 @@ func FetchItems(keyword string, page int) (*ResponsePayload, error) {
 	return &data, nil
 }
 
-func FetchData() []Item {
-	keyword := "Land Cruiser 2000"
+func FetchData(keyword string) []Item {
 	keyword = strings.Replace(keyword, " ", "%20", -1)
 	data, err := FetchItems(keyword, 0)
 	if err != nil {
@@ -77,4 +76,23 @@ func FetchData() []Item {
 
 	data.Data = append(data.Data, data2.Data...)
 	return data.Data
+}
+
+func FetchDatas(keywords []string) []Item {
+	result := []Item{}
+	for _, keyword := range keywords {
+		keyword = strings.Replace(keyword, " ", "%20", -1)
+		data, err := FetchItems(keyword, 0)
+		if err != nil {
+			fmt.Println("Error", err.Error())
+		}
+
+		data2, err := FetchItems(keyword, 1)
+		if err != nil {
+			fmt.Println("Error", err.Error())
+		}
+		result = append(result, data.Data...)
+		result = append(result, data2.Data...)
+	}
+	return result
 }
