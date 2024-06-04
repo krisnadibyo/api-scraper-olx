@@ -67,3 +67,43 @@ func AppendRowToSheet(srv *sheets.Service, spreadsheetId string, sheetName strin
 		log.Fatalf("Unable to insert data to sheet: %v", err)
 	}
 }
+
+func CreateNewSheet(srv *sheets.Service, spreadsheetId string, sheetName string) {
+	//check if sheetname already exist
+	// Retrieve the spreadsheet to get the list of sheets.
+	spreadsheet, err := srv.Spreadsheets.Get(spreadsheetId).Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve spreadsheet: %v", err)
+	}
+
+	// Check if the sheet already exists.
+	sheetExists := false
+	for _, sheet := range spreadsheet.Sheets {
+		if sheet.Properties.Title == sheetName {
+			sheetExists = true
+			break
+		}
+	}
+
+	if sheetExists {
+		log.Printf("Sheet %s already exists", sheetName)
+		return
+	}
+
+	rb := &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: []*sheets.Request{
+			&sheets.Request{
+				AddSheet: &sheets.AddSheetRequest{
+					Properties: &sheets.SheetProperties{
+						Title: sheetName,
+					},
+				},
+			},
+		},
+	}
+
+	_, er := srv.Spreadsheets.BatchUpdate(spreadsheetId, rb).Do()
+	if er != nil {
+		log.Fatalf("Unable to create new sheet: %v", err)
+	}
+}

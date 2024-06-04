@@ -9,6 +9,7 @@ func main() {
 
 	srv, _ := _helper.SetupGsheet()
 	cars := _helper.FetchDatas(config.Keywords)
+	_helper.CreateNewSheet(srv, config.SpreadsheetID, config.SheetName)
 	_helper.AppendRowToSheet(srv, config.SpreadsheetID, config.SheetName, _helper.AppendRowData(cars))
 
 }

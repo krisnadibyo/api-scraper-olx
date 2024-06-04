@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Keywords   		[]string `json:"keywords"`
 	SpreadsheetID 	string `json:"spreadsheet_id"`
-	SheetName       	string `json:"sheet_name"`
+	SheetName       string `json:"sheet_name"`
 }
 
 func ReadTokenFile() Token {
