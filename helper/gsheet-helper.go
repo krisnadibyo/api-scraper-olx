@@ -3,7 +3,9 @@ package helper
 import (
 	"context"
 	"encoding/json"
-//	"fmt"
+	"strings"
+
+	//	"fmt"
 	"log"
 	"os"
 
@@ -18,7 +20,7 @@ type Token struct {
 	Email        string `json:"client_email"`
 }
 
-func readTokenFile() Token {
+func ReadTokenFile() Token {
 	jsonFile, err := os.Open("service-account.json")
 	if err != nil {
 		log.Fatalf("Unable to read token file: %v", err)
@@ -35,25 +37,8 @@ func readTokenFile() Token {
 	return token
 }
 
-func AppendRow(srv *sheets.Service, spreadsheetId string) {
-
-	values := &sheets.ValueRange{
-		Values: [][]interface{}{{
-		"Timmy",
-		"Malaysia",
-		}},
-	}
-
-	_, err := srv.Spreadsheets.Values.Append(spreadsheetId, "Sheet1!A:F", values).ValueInputOption("USER_ENTERED").Do()
-
-	if err != nil {
-		log.Fatalf("Unable to insert data to sheet: %v", err)
-	}
-}
-
-func maingo() {
-
-	token := readTokenFile()
+func SetupGsheet() (*sheets.Service, error) {
+	token := ReadTokenFile()
 
 	conf := &jwt.Config{
 		Email:        token.Email,
@@ -71,11 +56,33 @@ func maingo() {
 	srv, err := sheets.NewService(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		log.Fatalf("Unable to retrieve Sheets client: %v", err)
+		return nil, err
 	}
 
 	// Prints the names and majors of students in a sample spreadsheet:
 	// https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-	spreadsheetId := "13QBSQflOCao6HYJucZ02YnB8Uq5Q9l4cVEN0ab1VOXw"
-	AppendRow(srv, spreadsheetId)
-	
+	return srv, nil
+}
+
+func AppendRowData(data []Item) *sheets.ValueRange {
+	var vr sheets.ValueRange
+	var v [][]interface{}
+
+	for _, each := range data {
+		price := each.Price.Value.Display
+		price = price[3:]
+		price = strings.Replace(price, ".", "", -1)
+		v = append(v, []interface{}{each.Title, price})
+	}
+
+	vr.Values = v
+	return &vr
+}
+
+func AppendRowToSheet(srv *sheets.Service, spreadsheetId string, rowData *sheets.ValueRange) {
+	_, err := srv.Spreadsheets.Values.Append(spreadsheetId, "Sheet1!A:F", rowData).ValueInputOption("USER_ENTERED").Do()
+
+	if err != nil {
+		log.Fatalf("Unable to insert data to sheet: %v", err)
+	}
 }
