@@ -1,5 +1,4 @@
 {
-    "keywords": ["test", "test2", "test3"],
-    "spreadsheet_id": "1J9",
-    "sheet_name": "Sheet1"
+    "spreadsheet_id": "some ids",
+    "url": "some url"
 }
