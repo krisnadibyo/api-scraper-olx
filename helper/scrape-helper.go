@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-var Url = "https://www.olx.co.id/api/relevance/v4/search?category=198&facet_limit=100&location_facet_limit=20&platform=web-desktop&relaxedFilters=true&size=40&spellcheck=true&user=186274cf010x52b9387a"
-
 type ResponsePayload struct {
 	Data []Item `json:"data"`
 }
@@ -38,12 +36,12 @@ func GenerateUrl(url string, keyword string, page int) string {
 	return url + "&query=" + keyword + "&location=" + location
 }
 
-func FetchItems(keyword string, page int) (*ResponsePayload, error) {
+func FetchItems(url string, keyword string, page int) (*ResponsePayload, error) {
 	var err error
 	var client = &http.Client{}
 	var data ResponsePayload
 
-	request, err := http.NewRequest("GET", GenerateUrl(Url, keyword, page), nil)
+	request, err := http.NewRequest("GET", GenerateUrl(url, keyword, page), nil)
 
 	if err != nil {
 		return nil, err
@@ -62,14 +60,14 @@ func FetchItems(keyword string, page int) (*ResponsePayload, error) {
 	return &data, nil
 }
 
-func FetchData(keyword string) []Item {
+func FetchData(url string, keyword string) []Item {
 	keyword = strings.Replace(keyword, " ", "%20", -1)
-	data, err := FetchItems(keyword, 0)
+	data, err := FetchItems(url, keyword, 0)
 	if err != nil {
 		fmt.Println("Error", err.Error())
 	}
 
-	data2, err := FetchItems(keyword, 1)
+	data2, err := FetchItems(url, keyword, 1)
 	if err != nil {
 		fmt.Println("Error", err.Error())
 	}
@@ -78,16 +76,16 @@ func FetchData(keyword string) []Item {
 	return data.Data
 }
 
-func FetchDatas(keywords []string) []Item {
+func FetchDatas(url string, keywords []string) []Item {
 	result := []Item{}
 	for _, keyword := range keywords {
 		keyword = strings.Replace(keyword, " ", "%20", -1)
-		data, err := FetchItems(keyword, 0)
+		data, err := FetchItems(url, keyword, 0)
 		if err != nil {
 			fmt.Println("Error", err.Error())
 		}
 
-		data2, err := FetchItems(keyword, 1)
+		data2, err := FetchItems(url, keyword, 1)
 		if err != nil {
 			fmt.Println("Error", err.Error())
 		}

@@ -7,9 +7,17 @@ import (
 )
 
 type Config struct {
-	Keywords   		[]string `json:"keywords"`
-	SpreadsheetID 	string `json:"spreadsheet_id"`
-	SheetName       string `json:"sheet_name"`
+	SpreadsheetID string `json:"spreadsheet_id"`
+	Url           string `json:"url"`
+}
+
+type DataSearch struct {
+	Search []SearchItem `json:"search"`
+}
+
+type SearchItem struct {
+	Keywords  []string `json:"keywords"`
+	SheetName string   `json:"sheet_name"`
 }
 
 func ReadTokenFile() Token {
@@ -43,4 +51,20 @@ func ReadConfigFile() Config {
 	}
 
 	return config
+}
+
+func ReadSearchFile() DataSearch {
+	jsonFile, err := os.Open("search.json")
+	if err != nil {
+		log.Fatalf("Unable to read config file: %v", err)
+	}
+
+	defer jsonFile.Close()
+	search := DataSearch{}
+	jsonParser := json.NewDecoder(jsonFile)
+	if err = jsonParser.Decode(&search); err != nil {
+		log.Fatalf("Unable to parse config file: %v", err)
+	}
+
+	return search
 }

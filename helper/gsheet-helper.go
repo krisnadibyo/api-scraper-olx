@@ -127,7 +127,7 @@ func CreateNewSheet(srv *sheets.Service, spreadsheetId string, sheetName string)
 	// Check if the sheet already exists.
 	sheetExists := false
 	for _, sheet := range spreadsheet.Sheets {
-		if sheet.Properties.Title == sheetName {
+		if strings.ToLower(sheet.Properties.Title) == strings.ToLower(sheetName) {
 			sheetExists = true
 			break
 		}
@@ -152,6 +152,6 @@ func CreateNewSheet(srv *sheets.Service, spreadsheetId string, sheetName string)
 
 	_, er := srv.Spreadsheets.BatchUpdate(spreadsheetId, rb).Do()
 	if er != nil {
-		log.Fatalf("Unable to create new sheet: %v", err)
+		log.Fatalf("Unable to create new sheet: %v", er)
 	}
 }
